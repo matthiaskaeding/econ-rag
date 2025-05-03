@@ -1,6 +1,7 @@
 import pytest
 
-from econ_rag.utils import get_issns, make_hive_cache_key, parse_hive_cache_key
+from econ_rag.data.utils import get_issns, make_hive_cache_key, parse_hive_cache_key
+from econ_rag.bm25.clean_data import clean_text
 
 
 def test_make_hive_cache_key():
@@ -66,3 +67,26 @@ def test_get_issns():
     assert result["Journal of Political Economy"]["print_issn"] == "0022-3808"
     assert result["Econometrica"]["print_issn"] == "0012-9682"
     assert result["Review of Economic Studies"]["print_issn"] == "0034-6527"
+
+
+def test_clean_text():
+    # Test basic functionality
+    assert clean_text("  hello  world  ") == "hello world"
+    assert clean_text("hello\nworld") == "hello world"
+    assert clean_text("hello\tworld") == "hello world"
+
+    # Test multiple spaces and newlines
+    assert clean_text("hello    world\n\n\n") == "hello world"
+    assert clean_text("hello\n\n\nworld") == "hello world"
+
+    # Test empty string
+    assert clean_text("") == ""
+
+    # Test non-string input
+
+    with pytest.raises(AssertionError):
+        assert clean_text(None) == ""
+        assert clean_text(123) == ""
+
+    # Test with special characters
+    assert clean_text("hello-world") == "hello-world"

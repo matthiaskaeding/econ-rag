@@ -11,7 +11,7 @@ from diskcache import Cache
 from dotenv import load_dotenv
 from utils import get_issns, make_hive_cache_key
 
-proj_dir = Path(__file__).parents[1]
+proj_dir = Path(__file__).parents[2]
 cache = Cache(proj_dir / "data" / "cache")
 
 load_dotenv()
