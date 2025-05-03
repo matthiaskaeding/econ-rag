@@ -1,4 +1,5 @@
 import pytest
+
 from econ_rag.utils import get_issns, make_hive_cache_key, parse_hive_cache_key
 
 

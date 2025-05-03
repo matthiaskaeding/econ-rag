@@ -48,3 +48,24 @@ def get_issns() -> dict:
             "online_issn": "1467-937X",
         },
     }
+
+
+def get_journals_by_issn() -> dict:
+    """
+    Returns a dictionary mapping ISSNs to journal names.
+    Example:
+    {
+        "0033-5533": "Quarterly Journal of Economics",
+        "1531-4650": "Quarterly Journal of Economics",
+        "0002-8282": "American Economic Review",
+        ...
+    }
+    """
+    issns = get_issns()
+    result = {}
+
+    for journal_name, issn_dict in issns.items():
+        result[issn_dict["print_issn"]] = journal_name
+        result[issn_dict["online_issn"]] = journal_name
+
+    return result

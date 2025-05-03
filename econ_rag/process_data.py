@@ -1,15 +1,15 @@
 # Processes the abstracts in a form amendable for RAG
 from pathlib import Path
-from pprint import pprint
 
+import jsonlines
 from diskcache import Cache
-from utils import get_issns
+from utils import get_issns, get_journals_by_issn, parse_hive_cache_key
 
 proj_dir = Path(__file__).parents[1]
 cache = Cache(proj_dir / "data" / "cache")
 
 
-def parse_crossref_cache_entry(entry: dict, issns) -> list[dict]:
+def parse_crossref_cache_entry(entry: dict, journal: str) -> list[dict]:
     """
     Extracts metadata from a single Crossref API response stored in diskcache.
 
@@ -34,15 +34,38 @@ def parse_crossref_cache_entry(entry: dict, issns) -> list[dict]:
         ]
         abstract = item.get("abstract", "")
         results.append(
-            {"title": title, "year": year, "authors": authors, "abstract": abstract}
+            {
+                "title": title,
+                "year": year,
+                "authors": authors,
+                "abstract": abstract,
+                "journal": journal,
+            }
         )
 
     return results
 
 
+jsonl_file = proj_dir / "data" / "abstracts.jsonl"
+if jsonl_file.exists():
+    jsonl_file.unlink()
+assert not jsonl_file.exists()
+
 if __name__ == "__main__":
     keys = list(cache)
     issns = get_issns()
-    k = keys[0]
-    entry = cache[k]
-    pprint(entry)
+    issns_inv = get_journals_by_issn()
+
+    dfs = []
+    for k in keys:
+        # Figure out journal
+        data = parse_hive_cache_key(k)
+        journal = issns_inv[data["issn"]]
+        v = cache[k]
+
+        vp = parse_crossref_cache_entry(v, journal)
+
+        with jsonlines.open(jsonl_file, mode="a") as writer:
+            writer.write_all(vp)
+
+    assert jsonl_file.exists(), "File does not exist"
