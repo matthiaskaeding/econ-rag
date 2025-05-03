@@ -13,7 +13,7 @@ cache = Cache(proj_dir / "data" / "cache")
 jsonl_file = proj_dir / "data" / "abstracts.jsonl"
 
 
-def clean_text(text: str) -> str:
+def clean_text(text: str, remove_abstract=False) -> str:
     """Cleans text -> lowers and tokenizes. Needs downloaded corpus"""
 
     assert isinstance(text, str)
@@ -24,8 +24,14 @@ def clean_text(text: str) -> str:
     if not tokens:
         return ""
 
-    if tokens[0] == "Abstract":
-        start = 1
+    if remove_abstract:
+        if tokens[0] == "abstract":
+            start = 1
+        elif tokens[0].startswith("abstract"):
+            tokens[0] = tokens[0].replace("abstract", "")
+            start = 0
+        else:
+            start = 0
     else:
         start = 0
 
@@ -43,8 +49,15 @@ if __name__ == "__main__":
         .sort("journal", "year")
         .filter(pl.col("authors").list.len() > 0, pl.col("abstract") != "")
     )
+
+    pattern = r"<[^>]+>"
     df = df.with_columns(
-        pl.col("abstract").map_elements(clean_text).alias("tokenized_abstract")
+        pl.col("abstract").str.replace_all(pattern, "").str.strip_chars()
+    )
+    df = df.with_columns(
+        pl.col("abstract")
+        .map_elements(lambda x: clean_text(x, True), return_dtype=str)
+        .alias("tokenized_abstract")
     )
     print(df.head())
     df.write_parquet(proj_dir / "data" / "abstracts_clean.parquet")
