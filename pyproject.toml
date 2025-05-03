@@ -1,0 +1,7 @@
+[project]
+name = "econ-rag"
+version = "0.1.0"
+description = "Building a RAG application to econometric joirnals"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
