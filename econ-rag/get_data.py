@@ -1,14 +1,15 @@
 # Gets the abstract and other information of articles in top 5
 # Stores results in cache
 from datetime import date
+from os import getenv
+from pathlib import Path
+from pprint import pprint
+from typing import Dict, List
+
 import requests
 from diskcache import Cache
-from typing import List, Dict
-from pathlib import Path
 from dotenv import load_dotenv
-from os import getenv
-from pprint import pprint
-from utils import make_hive_cache_key, get_issns
+from utils import get_issns, make_hive_cache_key
 
 proj_dir = Path(__file__).parents[1]
 cache = Cache(proj_dir / "data" / "cache")
