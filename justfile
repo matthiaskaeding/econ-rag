@@ -1,3 +1,17 @@
+# Format and fix errors in code via ruff
 lint:
     uv tool run ruff format 
-    uv tool run ruff check --fix 
+    uv tool run ruff check --fix
+
+# Gets the data from top 5 via crossref
+get-abstracts:
+    uv run econ_rag/get_data.py
+
+
+# Process the data into RAG-able form
+process-data:
+    uv run econ_rag/process_data.py
+
+# Runs tests
+test:
+    uv run pytest tests
