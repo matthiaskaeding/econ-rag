@@ -1,0 +1,1 @@
+# Apply RAG to top 5 econometrics journals
