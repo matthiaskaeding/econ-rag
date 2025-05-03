@@ -6,35 +6,24 @@ def make_hive_cache_key(**kwargs) -> str:
     return "/".join(f"{key}={value}" for key, value in sorted(kwargs.items()))
 
 
-def parse_crossref_cache_entry(entry: dict) -> list[dict]:
+def parse_hive_cache_key(cache_key: str) -> dict:
     """
-    Extracts metadata from a single Crossref API response stored in diskcache.
-
-    Args:
-        entry (dict): The cached Crossref API response.
-
-    Returns:
-        List[Dict]: List of simplified paper metadata dictionaries.
+    Parse a Hive-style cache key string into a dictionary.
+    Example usage:
+    >>> parse_hive_cache_key("issn=0033-5533/date_from=2020-01-01/date_to=2020-12-31/offset=0")
+    {'issn': '0033-5533', 'date_from': '2020-01-01', 'date_to': '2020-12-31', 'offset': '0'}
     """
-    if not isinstance(entry, dict):
-        raise ValueError("Cache entry must be a dictionary.")
+    pairs = cache_key.split("/")
+    result = {}
 
-    items = entry.get("message", {}).get("items", [])
-    results = []
+    for pair in pairs:
+        if "=" not in pair:
+            msg = "Must contain ="
+            raise ValueError(msg)
+        key, value = pair.split("=")
+        result[key] = value
 
-    for item in items:
-        title = item.get("title", [""])[0]
-        year = item.get("issued", {}).get("date-parts", [[None]])[0][0]
-        authors = [
-            f"{a.get('given', '')} {a.get('family', '')}".strip()
-            for a in item.get("author", [])
-        ]
-        abstract = item.get("abstract", "")
-        results.append(
-            {"title": title, "year": year, "authors": authors, "abstract": abstract}
-        )
-
-    return results
+    return result
 
 
 def get_issns() -> dict:

@@ -6,3 +6,12 @@ lint:
 # Gets the data from top 5 via crossref
 get-abstracts:
     uv run econ-rag/get_data.py
+
+
+# Process the data into RAG-able form
+process-data:
+    uv run econ-rag/process_data.py
+
+# Runs tests
+test:
+    uv run pytest tests
