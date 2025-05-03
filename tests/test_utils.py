@@ -1,6 +1,6 @@
 import pytest
 
-from econ_rag.utils import get_issns, make_hive_cache_key, parse_hive_cache_key
+from econ_rag.data.utils import get_issns, make_hive_cache_key, parse_hive_cache_key
 
 
 def test_make_hive_cache_key():

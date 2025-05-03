@@ -5,7 +5,7 @@ import jsonlines
 from diskcache import Cache
 from utils import get_issns, get_journals_by_issn, parse_hive_cache_key
 
-proj_dir = Path(__file__).parents[1]
+proj_dir = Path(__file__).parents[2]
 cache = Cache(proj_dir / "data" / "cache")
 
 
@@ -46,12 +46,12 @@ def parse_crossref_cache_entry(entry: dict, journal: str) -> list[dict]:
     return results
 
 
-jsonl_file = proj_dir / "data" / "abstracts.jsonl"
-if jsonl_file.exists():
-    jsonl_file.unlink()
-assert not jsonl_file.exists()
-
 if __name__ == "__main__":
+    jsonl_file = proj_dir / "data" / "abstracts.jsonl"
+    if jsonl_file.exists():
+        jsonl_file.unlink()
+    assert not jsonl_file.exists()
+    print(jsonl_file)
     keys = list(cache)
     issns = get_issns()
     issns_inv = get_journals_by_issn()
