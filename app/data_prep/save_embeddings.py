@@ -23,13 +23,16 @@ model = SentenceTransformer("all-MiniLM-L6-v2", device=device)
 print("Building embeddings")
 abstracts = df.get_column("abstract").to_list()
 embeddings = model.encode(abstracts, convert_to_tensor=False, show_progress_bar=True)
+print(embeddings.shape)
 print(embeddings)
 # %%
-print(embeddings.shape)
+emb_series = pl.Series(
+    name="embedding",
+    values=embeddings.tolist(),
+    dtype=pl.Array(pl.Float32, embeddings.shape[1]),
+)
+df = df.with_columns(emb_series)
 # %%
-# Make dataframe and write to disk
-emb_df = pl.DataFrame(embeddings).rename(lambda x: x.replace("column", "emb"))
-df = df.hstack(emb_df)
-
+print("df with embeddings:", df)
 # %%
 df.write_parquet(proj_dir / "data" / "embeddings.parquet")
