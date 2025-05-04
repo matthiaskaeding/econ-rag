@@ -7,18 +7,24 @@ lint:
 get-abstracts:
     uv run app/data_prep/get_data.py
 
-# Process the data into RAG-able form
+# Process  and cleans the data, stores a parquet file
 process-data:
     uv run app/data_prep/process_data.py
-
-# Cleans the data, deleting empy abstrats etc. and applies tokenizer as prep for bm25
-clean-data:
-    uv run python app/data_prep/clean_data.py 
 
 # Store embeddings
 save-embeddings:
     uv run python app/data_prep/save_embeddings.py
 
+# All data commands
+data: get-abstracts process-data
+
 # Runs tests
 test:
     uv run pytest tests
+
+# Lint, format, run tests
+check: lint test
+
+# Strip notebooks of metadata
+strip-nbs:
+    uv tool run nbstripout --keep-output experiments/explore_data.ipynb

@@ -1,7 +1,7 @@
 [project]
 name = "econ-rag"
 version = "0.1.0"
-description = "Building a RAG application to econometric joirnals"
+description = "Building a RAG application to econometric journals"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -14,10 +14,18 @@ dependencies = [
     "requests>=2.32.3",
     "sentence-transformers>=4.1.0",
     "torch>=2.7.0",
+    "tqdm>=4.67.1",
 ]
 
 [tool.ruff]
 lint.extend-select = ["I"]
 
 [dependency-groups]
-dev = ["pytest>=8.3.5", "ipykernel"]
+dev = [
+    "pytest>=8.3.5",
+    "ipykernel",
+    "pyarrow>=20.0.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["app"]

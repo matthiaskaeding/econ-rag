@@ -3,12 +3,12 @@
 from datetime import date
 from os import getenv
 from pathlib import Path
-from pprint import pprint
 from typing import Dict, List
 
 import requests
 from diskcache import Cache
 from dotenv import load_dotenv
+from tqdm import tqdm
 from utils import get_issns, make_hive_cache_key
 
 proj_dir = Path(__file__).parents[2]
@@ -19,61 +19,77 @@ user_email = getenv("USER_EMAIL")
 
 
 def fetch_crossref_metadata(
-    date_from: str, date_to: str, issn: str, cache: Cache, user_email: str
+    date_from: str,
+    date_to: str,
+    issn: str,
+    cache: Cache,
+    user_email: str,
+    prefix: str = None,
+    verbose=False,
 ) -> List[Dict]:
     """
-    Fetch metadata from Crossref API for a journal in a date range using Hive-style cache keys.
-
-    Args:
-        date_from (str): Start date in 'YYYY-MM-DD'.
-        date_to (str): End date in 'YYYY-MM-DD'.
-        issn (str): Journal ISSN.
-        cache (Cache): DiskCache instance.
-        user_email (str): Email for polite API access.
-
-    Returns:
-        List[Dict]: List of article metadata.
+    Fetch metadata from Crossref API for a journal in a date range,
+    including the journal title (container-title).
     """
-    base_url = f"https://api.crossref.org/journals/{issn}/works"
+    base_url = "https://api.crossref.org/works"
     headers = {"User-Agent": f"MyCrossrefClient/1.0 (mailto:{user_email})"}
 
+    # Filters
+    common = [
+        "type:journal-article",
+        f"from-pub-date:{date_from}",
+        f"until-pub-date:{date_to}",
+        "has-abstract:true",
+    ]
+    if prefix:
+        key_filter = f"prefix:{prefix}"
+    elif issn:
+        key_filter = f"issn:{issn}"
+    else:
+        raise ValueError("You must supply either an ISSN or a DOI prefix")
+    filters = [key_filter] + common
+
     params = {
-        "filter": f"type:journal-article,from-pub-date:{date_from},until-pub-date:{date_to}",
+        "filter": ",".join(filters),
         "rows": 1000,
-        "select": "title,author,issued,abstract",
+        "select": "DOI,title,author,issued,abstract,container-title",
         "sort": "published",
         "order": "desc",
         "mailto": user_email,
+        "cursor": "*",
     }
 
-    offset = 0
-    n_results = 0
-
+    all_items = []
     while True:
-        params["offset"] = offset
         cache_key = make_hive_cache_key(
-            issn=issn, date_from=date_from, date_to=date_to, offset=offset
+            issn=issn,
+            date_from=date_from,
+            date_to=date_to,
+            cursor=params["cursor"],
+            prefix=prefix,
         )
-
         if cache_key in cache:
-            response_data = cache[cache_key]
+            data = cache[cache_key]
         else:
-            response = requests.get(base_url, headers=headers, params=params)
-            if response.status_code != 200:
-                print(f"Error {response.status_code}: {response.text}")
-                break
-            response_data = response.json()
-            assert isinstance(response_data, dict)
-            cache[cache_key] = response_data
+            resp = requests.get(base_url, headers=headers, params=params)
+            resp.raise_for_status()
+            if verbose:
+                print("REQUEST ▶", resp.url)
+                print("STATUS  ▶", resp.status_code)
+                print("HEADERS ▶", resp.headers.get("Retry-After", "none"))
+                print("BODY    ▶", resp.text[:200], "…")
+            data = resp.json()["message"]
+            cache[cache_key] = data
 
-        items = response_data.get("message", {}).get("items", [])
-        if not items:
+        items = data.get("items", [])
+        all_items.extend(items)
+
+        if len(items) < params["rows"]:
             break
 
-        offset += params["rows"]
-        n_results += 1
+        params["cursor"] = data["next-cursor"]
 
-    return n_results
+    return all_items
 
 
 def generate_yearly_date_ranges(start_year: int) -> list[dict]:
@@ -102,18 +118,38 @@ if __name__ == "__main__":
     START_YEAR = 2000
     date_ranges = generate_yearly_date_ranges(START_YEAR)
     issns = get_issns()
-    for journal in issns:
-        issn = issns[journal]["print_issn"]
-        for date_range in date_ranges:
+    DOI_PREFIX = {
+        # "American Economic Review": "10.1257/aer",
+        "Journal of Political Economy": "10.1086",  # JPE
+    }
+
+    for date_range in tqdm(date_ranges):
+        for journal in issns:
+            prefix = DOI_PREFIX.get(journal)
+            print_issn = issns[journal]["print"]
+            online_issn = issns[journal]["online"]
             date_range["journal"] = journal
-            pprint(date_range)
-            n_results = fetch_crossref_metadata(
+            items_print = fetch_crossref_metadata(
                 date_from=date_range["date_from"],
                 date_to=date_range["date_to"],
-                issn=issn,
+                issn=print_issn,
                 cache=cache,
                 user_email=user_email,
+                prefix=prefix,
             )
+            if not items_print:
+                msg = f"No print items for {journal} in {date_range}"
+                print(msg)
+            items_online = fetch_crossref_metadata(
+                date_from=date_range["date_from"],
+                date_to=date_range["date_to"],
+                issn=online_issn,
+                cache=cache,
+                user_email=user_email,
+                prefix=prefix,
+            )
+            if not items_online:
+                msg = f"No online items for {journal} in {date_range}"
+                print(msg)
 
-    keys = list(cache)
-    pprint(keys)
+    print("Got raw abstracts")
