@@ -70,5 +70,6 @@ file = proj_dir / "data" / f"embeddings_{model_name.replace('/', '-')}.parquet"
 assert file.exists(), f"{file} not there"
 df_allen = pl.read_parquet(file)
 # %%
+# These seem better
 find_topk(df_allen, query, specter_model)
 # %%
