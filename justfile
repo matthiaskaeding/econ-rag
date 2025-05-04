@@ -14,7 +14,9 @@ process-data:
 # Store embeddings
 save-embeddings:
     uv run app/data_prep/save_embeddings.py
-
+# Store embeddings from allenai
+save-embeddings2:
+    uv run app/data_prep/save_embeddings2.py
 # All data commands
 data: get-abstracts process-data
 
