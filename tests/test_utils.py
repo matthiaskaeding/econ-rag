@@ -56,17 +56,17 @@ def test_get_issns():
 
     # Test journal structure
     for journal in result.values():
-        assert "print_issn" in journal
-        assert "online_issn" in journal
-        assert isinstance(journal["print_issn"], str)
-        assert isinstance(journal["online_issn"], str)
+        assert "print" in journal
+        assert "online" in journal
+        assert isinstance(journal["print"], str)
+        assert isinstance(journal["online"], str)
 
     # Test specific ISSNs
-    assert result["Quarterly Journal of Economics"]["print_issn"] == "0033-5533"
-    assert result["American Economic Review"]["print_issn"] == "0002-8282"
-    assert result["Journal of Political Economy"]["print_issn"] == "0022-3808"
-    assert result["Econometrica"]["print_issn"] == "0012-9682"
-    assert result["Review of Economic Studies"]["print_issn"] == "0034-6527"
+    assert result["Quarterly Journal of Economics"]["print"] == "0033-5533"
+    assert result["American Economic Review"]["print"] == "0002-8282"
+    assert result["Journal of Political Economy"]["print"] == "0022-3808"
+    assert result["Econometrica"]["print"] == "0012-9682"
+    assert result["Review of Economic Studies"]["print"] == "0034-6527"
 
 
 def test_clean_text():

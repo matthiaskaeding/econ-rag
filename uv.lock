@@ -221,6 +221,7 @@ dependencies = [
     { name = "requests" },
     { name = "sentence-transformers" },
     { name = "torch" },
+    { name = "tqdm" },
 ]
 
 [package.dev-dependencies]
@@ -240,6 +241,7 @@ requires-dist = [
     { name = "requests", specifier = ">=2.32.3" },
     { name = "sentence-transformers", specifier = ">=4.1.0" },
     { name = "torch", specifier = ">=2.7.0" },
+    { name = "tqdm", specifier = ">=4.67.1" },
 ]
 
 [package.metadata.requires-dev]

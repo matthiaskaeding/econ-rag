@@ -28,24 +28,23 @@ def parse_hive_cache_key(cache_key: str) -> dict:
 
 def get_issns() -> dict:
     """Returns dict of issns for top 5"""
-    # issn
     return {
         "Quarterly Journal of Economics": {
-            "print_issn": "0033-5533",
-            "online_issn": "1531-4650",
+            "print": "0033-5533",
+            "online": "1531-4650",
         },
         "American Economic Review": {
-            "print_issn": "0002-8282",
-            "online_issn": "1944-7981",
+            "print": "0002-8282",
+            "online": "1944-7981",
         },
         "Journal of Political Economy": {
-            "print_issn": "0022-3808",
-            "online_issn": "1537-534X",
+            "print": "0022-3808",
+            "online": "1537-534X",
         },
-        "Econometrica": {"print_issn": "0012-9682", "online_issn": "1468-0262"},
+        "Econometrica": {"print": "0012-9682", "online": "1468-0262"},
         "Review of Economic Studies": {
-            "print_issn": "0034-6527",
-            "online_issn": "1467-937X",
+            "print": "0034-6527",
+            "online": "1467-937X",
         },
     }
 
@@ -65,7 +64,7 @@ def get_journals_by_issn() -> dict:
     result = {}
 
     for journal_name, issn_dict in issns.items():
-        result[issn_dict["print_issn"]] = journal_name
-        result[issn_dict["online_issn"]] = journal_name
+        result[issn_dict["print"]] = journal_name
+        result[issn_dict["online"]] = journal_name
 
     return result
