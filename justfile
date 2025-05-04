@@ -19,7 +19,6 @@ clean-data:
 save-embeddings:
     uv run python app/data_prep/save_embeddings.py
 
-
 # Runs tests
 test:
     uv run pytest tests
