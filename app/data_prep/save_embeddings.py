@@ -18,7 +18,8 @@ device = (
 )
 print(f"Using device: {device}")
 # %%
-model = SentenceTransformer("all-MiniLM-L6-v2", device=device)
+model_name = "all-MiniLM-L6-v2"
+model = SentenceTransformer(model_name, device=device)
 # %%
 print("Building embeddings")
 abstracts = df.get_column("abstract").to_list()
