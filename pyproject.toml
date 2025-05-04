@@ -25,6 +25,7 @@ dev = [
     "pytest>=8.3.5",
     "ipykernel",
     "pyarrow>=20.0.0",
+    "plotnine>=0.14.5",
 ]
 
 [tool.pytest.ini_options]
