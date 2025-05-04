@@ -27,12 +27,14 @@ embeddings = np.vstack(df["embedding"].to_list()).astype("float32")
 print(embeddings.shape)
 # %%
 abstracts = df["abstract"].to_list()
-q_emb = model.encode(["Elasticity"], convert_to_numpy=True)
+query = "Papers which estimate elasticities"
+q_emb = model.encode([query], convert_to_numpy=True)
 # %%
+print(f"{query=}")
 sims = cosine_similarity(q_emb, embeddings)[0]
 top_k = 5
 top_idx = sims.argsort()[::-1][:top_k]
-
+print("5 closest queries")
 for rank, idx in enumerate(top_idx, start=1):
     print(f"{rank}. Score: {sims[idx]:.4f}\n   Abstract: {abstracts[idx]}\n")
 
