@@ -50,9 +50,12 @@ if __name__ == "__main__":
         .filter(pl.col("authors").list.len() > 0, pl.col("abstract") != "")
     )
 
-    pattern = r"<[^>]+>"
     df = df.with_columns(
-        pl.col("abstract").str.replace_all(pattern, "").str.strip_chars()
+        pl.col("abstract").alias("abstract_original"),
+        pl.col("abstract")
+        .str.replace_all(r"<[^>]+>", "")
+        .str.strip_chars()
+        .str.replace(r"^\s*Abstract\b", ""),
     )
     df = df.with_columns(
         pl.col("abstract")

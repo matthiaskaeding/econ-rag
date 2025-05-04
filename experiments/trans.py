@@ -1,29 +1,39 @@
 # Try transformers for embeddings
+# Works okay
 # %%
 from pathlib import Path
 from pprint import pprint as print
 
+import numpy as np
 import polars as pl
-from rank_bm25 import BM25Okapi
+import torch
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
 
-from app.data_prep.clean_data import clean_text
+# %%
+device = (
+    torch.device("mps") if torch.backends.mps.is_available() else torch.device("cpu")
+)
+model = SentenceTransformer("all-MiniLM-L6-v2", device=device)
+# %%
+proj_dir = Path(__file__).parents[1]
+data_file = proj_dir / "data" / "embeddings.parquet"
+assert data_file.exists()
+df = pl.read_parquet(data_file)
+assert "embedding" in df.columns
+print(df)
+# %%
+embeddings = np.vstack(df["embedding"].to_list()).astype("float32")
+print(embeddings.shape)
+# %%
+abstracts = df["abstract"].to_list()
+q_emb = model.encode(["Elasticity"], convert_to_numpy=True)
+# %%
+sims = cosine_similarity(q_emb, embeddings)[0]
+top_k = 5
+top_idx = sims.argsort()[::-1][:top_k]
 
-proj_dir = Path(__file__).parents[2]
+for rank, idx in enumerate(top_idx, start=1):
+    print(f"{rank}. Score: {sims[idx]:.4f}\n   Abstract: {abstracts[idx]}\n")
 
-
-data_file = proj_dir / "data" / "abstracts_clean.parquet"
-
-if __name__ == "__main__":
-    df = pl.read_parquet(data_file)
-    print(df)
-    corpus = df.get_column("tokenized_abstract").to_list()
-    bm25 = BM25Okapi(corpus)
-
-    query = "Randomized controlled trial"
-
-    tokenized_query = clean_text(query)
-    doc_scores = bm25.get_scores(tokenized_query)
-
-    n = 3
-    topn = bm25.get_top_n(tokenized_query, corpus, n=n)
-    print(topn)  # Seems really bad
+# %%

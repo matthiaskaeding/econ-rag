@@ -12,8 +12,12 @@ process-data:
     uv run app/data_prep/process_data.py
 
 # Cleans the data, deleting empy abstrats etc. and applies tokenizer as prep for bm25
-clean-data-bm25:
-    uv run python app/data_prep/clean_data_bm25.py 
+clean-data:
+    uv run python app/data_prep/clean_data.py 
+
+# Store embeddings
+save-embeddings:
+    uv run python app/data_prep/save_embeddings.py
 
 # Runs tests
 test:
