@@ -1,6 +1,6 @@
 import pytest
 
-from app.data_prep.clean_data_bm25 import clean_text
+from app.data_prep.clean_data import clean_text
 from app.data_prep.utils import get_issns, make_hive_cache_key, parse_hive_cache_key
 
 
