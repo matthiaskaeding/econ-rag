@@ -11,27 +11,16 @@ from adapters import AutoAdapterModel
 import numpy as np
 from tqdm import tqdm
 
-proj_dir = Path(__file__).parents[2]
-cache = Cache(proj_dir / "data" / "cache")
-parq_file = proj_dir / "data" / "abstracts_clean.parquet"
-df = pl.read_parquet(parq_file)
-print(df)
 # %%
-device = (
-    torch.device("mps") if torch.backends.mps.is_available() else torch.device("cpu")
-)
-print(f"Using device: {device}")
-# %%
-
-
-model_name = "allenai/specter2"
 
 
 class SpecterEmbeddings:
     def __init__(self, batch_size: int = 32):
         # load model and tokenizer
-        self.tokenizer = AutoTokenizer.from_pretrained("allenai/specter2_base")
-        self.model = AutoAdapterModel.from_pretrained("allenai/specter2_base")
+        name = "allenai/specter2_base"
+        self.tokenizer = AutoTokenizer.from_pretrained(name)
+        self.model = AutoAdapterModel.from_pretrained(name)
+        self.name = name.replace("/", "-")
         self.batch_size = batch_size
 
         self.model.load_adapter(
@@ -59,21 +48,33 @@ class SpecterEmbeddings:
         return np.vstack(all_embeddings)
 
 
-specter_embeddings = SpecterEmbeddings(6)
-# %%
-print("Building embeddings")
-abstracts = df.get_column("abstract").to_list()
-embeddings = specter_embeddings.embed(abstracts)
-# %%
-emb_series = pl.Series(
-    name="embedding",
-    values=embeddings.tolist(),
-    dtype=pl.Array(pl.Float32, embeddings.shape[1]),
-)
-df = df.with_columns(emb_series)
-# %%
-print("df with embeddings:", df)
-# %%
-df.write_parquet(
-    proj_dir / "data" / f"embeddings_{model_name.lower().replace('/', '_')}.parquet"
-)
+if __name__ == "__main__":
+    proj_dir = Path(__file__).parents[2]
+    cache = Cache(proj_dir / "data" / "cache")
+    parq_file = proj_dir / "data" / "abstracts_clean.parquet"
+    df = pl.read_parquet(parq_file)
+    print(df)
+    # %%
+    device = (
+        torch.device("mps")
+        if torch.backends.mps.is_available()
+        else torch.device("cpu")
+    )
+    print(f"Using device: {device}")
+    model = SpecterEmbeddings(6)
+    model_name = model.name
+    # %%
+    print("Building embeddings")
+    abstracts = df.get_column("abstract").to_list()
+    embeddings = model.embed(abstracts)
+    # %%
+    emb_series = pl.Series(
+        "embedding",
+        embeddings.tolist(),
+        pl.Array(pl.Float32, embeddings.shape[1]),
+    )
+    df = df.with_columns(emb_series)
+    # %%
+    print("df with embeddings:", df)
+    # %%
+    df.write_parquet(proj_dir / "data" / f"embeddings_{model_name}.parquet")

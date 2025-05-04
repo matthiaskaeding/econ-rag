@@ -28,12 +28,12 @@ print(embeddings.shape)
 print(embeddings)
 # %%
 emb_series = pl.Series(
-    name="embedding",
-    values=embeddings.tolist(),
-    dtype=pl.Array(pl.Float32, embeddings.shape[1]),
+    "embedding",
+    embeddings.tolist(),
+    pl.Array(pl.Float32, embeddings.shape[1]),
 )
-df = df.with_columns(emb_series)
+df = df.with_columns(emb_series, pl.lit(model_name).alias("model"))
 # %%
 print("df with embeddings:", df)
 # %%
-df.write_parquet(proj_dir / "data" / f"embeddings_{model_name.lower()}.parquet")
+df.write_parquet(proj_dir / "data" / f"embeddings_{model_name}.parquet")
