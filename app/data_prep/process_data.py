@@ -123,9 +123,10 @@ if __name__ == "__main__":
         pl.col("journal")
         .replace("The Review of Economic Studies", "Review of Economic Studies")
         .alias("journal"),
-    )
+    ).with_columns(pl.format("{}\n{}", "title", "abstract").alias("abstract"))
     df = df.unique(subset=["abstract"])
     counts = df.group_by("journal", "desired_journal").len()
     print("Counts by journal", counts)
-    print("Data", df.head())
+    with pl.Config(tbl_cols=20):
+        print("Data", df.head())
     df.write_parquet(proj_dir / "data" / "abstracts_clean.parquet")
