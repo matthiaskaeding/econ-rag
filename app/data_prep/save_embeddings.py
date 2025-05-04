@@ -36,4 +36,4 @@ df = df.with_columns(emb_series)
 # %%
 print("df with embeddings:", df)
 # %%
-df.write_parquet(proj_dir / "data" / "embeddings.parquet")
+df.write_parquet(proj_dir / "data" / f"embeddings_{model_name.lower()}.parquet")
