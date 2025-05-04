@@ -1,9 +1,12 @@
+# Try transformers for embeddings
+# %%
 from pathlib import Path
 from pprint import pprint as print
 
 import polars as pl
-from clean_data import clean_text
 from rank_bm25 import BM25Okapi
+
+from app.data_prep.clean_data import clean_text
 
 proj_dir = Path(__file__).parents[2]
 

@@ -1,7 +1,7 @@
 import pytest
 
-from econ_rag.bm25.clean_data import clean_text
-from econ_rag.data.utils import get_issns, make_hive_cache_key, parse_hive_cache_key
+from app.data_prep.clean_data_bm25 import clean_text
+from app.data_prep.utils import get_issns, make_hive_cache_key, parse_hive_cache_key
 
 
 def test_make_hive_cache_key():
