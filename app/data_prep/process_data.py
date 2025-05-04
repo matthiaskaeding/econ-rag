@@ -5,16 +5,9 @@ from pathlib import Path
 import nltk
 import polars as pl
 from diskcache import Cache
-from nltk.tokenize import word_tokenize
+from app.data_prep.utils import get_issns, get_journals_by_issn, parse_hive_cache_key
 
-try:
-    from app.data_prep.utils import (
-        get_issns,
-        get_journals_by_issn,
-        parse_hive_cache_key,
-    )
-except ImportError:
-    from utils import get_issns, get_journals_by_issn, parse_hive_cache_key
+from nltk.tokenize import word_tokenize
 
 proj_dir = Path(__file__).parents[2]
 cache = Cache(proj_dir / "data" / "cache")

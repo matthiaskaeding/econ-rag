@@ -9,11 +9,11 @@ get-abstracts:
 
 # Process  and cleans the data, stores a parquet file
 process-data:
-    uv run app/data_prep/process_data.py
+    uv run -m app.data_prep.process_data
 
 # Store embeddings
 save-embeddings:
-    uv run python app/data_prep/save_embeddings.py
+    uv run app/data_prep/save_embeddings.py
 
 # All data commands
 data: get-abstracts process-data
