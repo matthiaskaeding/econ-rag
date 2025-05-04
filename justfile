@@ -22,6 +22,9 @@ data: get-abstracts process-data
 test:
     uv run pytest tests
 
+# Lint, format, run tests
+check: lint test
+
 # Strip notebooks of metadata
 strip-nbs:
     uv tool run nbstripout --keep-output experiments/explore_data.ipynb

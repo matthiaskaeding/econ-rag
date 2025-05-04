@@ -1,26 +1,26 @@
 import pytest
-
-from app.data_prep.clean_data import clean_text
-from app.data_prep.utils import get_issns, make_hive_cache_key, parse_hive_cache_key
+from data_prep.process_data import clean_text
+from data_prep.utils import get_issns, make_hive_cache_key, parse_hive_cache_key
 
 
 def test_make_hive_cache_key():
     # Test basic functionality
-    result = make_hive_cache_key(
+    got = make_hive_cache_key(
         issn="0033-5533", date_from="2020-01-01", date_to="2020-12-31", offset=0
     )
-    assert result == "date_from=2020-01-01/date_to=2020-12-31/issn=0033-5533/offset=0"
+    want = "date_from=2020-01-01|date_to=2020-12-31|issn=0033-5533|offset=0"
+    assert got == want
 
     # Test with different order (should still be sorted)
-    result = make_hive_cache_key(
+    got = make_hive_cache_key(
         offset=0, date_to="2020-12-31", date_from="2020-01-01", issn="0033-5533"
     )
-    assert result == "date_from=2020-01-01/date_to=2020-12-31/issn=0033-5533/offset=0"
+    assert got == want
 
 
 def test_parse_hive_cache_key():
     # Test basic functionality
-    cache_key = "issn=0033-5533/date_from=2020-01-01/date_to=2020-12-31/offset=0"
+    cache_key = "issn=0033-5533|date_from=2020-01-01|date_to=2020-12-31|offset=0"
     result = parse_hive_cache_key(cache_key)
     assert result == {
         "issn": "0033-5533",
@@ -29,15 +29,17 @@ def test_parse_hive_cache_key():
         "offset": "0",
     }
 
-    # Test with single key-value pair
+    # Test with minimal key
     result = parse_hive_cache_key("issn=0033-5533")
     assert result == {"issn": "0033-5533"}
 
-    # Test with malformed input (should raise AssertionError)
+    # Test with malformed key
     with pytest.raises(ValueError):
         parse_hive_cache_key("malformed-key")
 
-        result = parse_hive_cache_key("")
+    # Test with empty key
+    result = parse_hive_cache_key("")
+    assert result == {}
 
 
 def test_get_issns():

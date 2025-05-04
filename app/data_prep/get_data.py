@@ -3,7 +3,6 @@
 from datetime import date
 from os import getenv
 from pathlib import Path
-from pprint import pprint
 from typing import Dict, List
 
 import requests
@@ -42,9 +41,6 @@ def fetch_crossref_metadata(
         f"until-pub-date:{date_to}",
         "has-abstract:true",
     ]
-    # if not prefix:
-    #     common.append("has-abstract:true")
-    # Choose the key filter: either prefix or issn
     if prefix:
         key_filter = f"prefix:{prefix}"
     elif issn:
@@ -122,14 +118,14 @@ if __name__ == "__main__":
     START_YEAR = 2000
     date_ranges = generate_yearly_date_ranges(START_YEAR)
     issns = get_issns()
+    DOI_PREFIX = {
+        # "American Economic Review": "10.1257/aer",
+        "Journal of Political Economy": "10.1086",  # JPE
+    }
 
     for date_range in tqdm(date_ranges):
         for journal in issns:
-            if journal == "Journal of Political Economy":
-                prefix = "10.1086"
-            else:
-                prefix = None
-
+            prefix = DOI_PREFIX.get(journal)
             print_issn = issns[journal]["print"]
             online_issn = issns[journal]["online"]
             date_range["journal"] = journal

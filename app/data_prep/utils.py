@@ -1,24 +1,24 @@
-def make_hive_cache_key(**kwargs) -> str:
-    """
-    Construct a Hive-style cache key from keyword arguments in Hive-style format.
-    Example: "issn=0033-5533/date_from=2020-01-01/date_to=2020-12-31/offset=0"
-    """
-    return "/".join(f"{key}={value}" for key, value in sorted(kwargs.items()))
+def make_hive_cache_key(**kwargs):
+    parts = [f"{k}={v}" for k, v in sorted(kwargs.items())]
+    # use pipe as the joiner
+    return "|".join(parts)
 
 
 def parse_hive_cache_key(cache_key: str) -> dict:
     """
     Parse a Hive-style cache key string into a dictionary.
     Example usage:
-    >>> parse_hive_cache_key("issn=0033-5533/date_from=2020-01-01/date_to=2020-12-31/offset=0")
+    >>> parse_hive_cache_key("issn=0033-5533|date_from=2020-01-01|date_to=2020-12-31|offset=0")
     {'issn': '0033-5533', 'date_from': '2020-01-01', 'date_to': '2020-12-31', 'offset': '0'}
     """
-    pairs = cache_key.split("/")
+    pairs = cache_key.split("|")
     result = {}
+    if cache_key == "":
+        return result
 
     for pair in pairs:
         if "=" not in pair:
-            msg = "Must contain ="
+            msg = f"Must contain = for pair {pair}"
             raise ValueError(msg)
         key, value = pair.split("=")
         result[key] = value

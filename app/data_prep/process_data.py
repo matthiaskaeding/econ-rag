@@ -1,57 +1,28 @@
 # Processes the abstracts in a form amendable for RAG
-from pathlib import Path
 import re
+from pathlib import Path
+
 import nltk
 import polars as pl
 from diskcache import Cache
-from utils import get_issns, get_journals_by_issn, parse_hive_cache_key
-
 from nltk.tokenize import word_tokenize
+
+try:
+    from app.data_prep.utils import (
+        get_issns,
+        get_journals_by_issn,
+        parse_hive_cache_key,
+    )
+except ImportError:
+    from utils import get_issns, get_journals_by_issn, parse_hive_cache_key
 
 proj_dir = Path(__file__).parents[2]
 cache = Cache(proj_dir / "data" / "cache")
 
 
-def parse_crossref_cache_entry(entry: dict, journal: str) -> list[dict]:
-    """
-    Extracts metadata from a single Crossref API response stored in diskcache.
-
-    Args:
-        entry (dict): The cached Crossref API response.
-
-    Returns:
-        List[Dict]: List of simplified paper metadata dictionaries.
-    """
-    if not isinstance(entry, dict):
-        raise ValueError("Cache entry must be a dictionary.")
-
-    items = entry.get("message", {}).get("items", [])
-    results = []
-
-    for item in items:
-        title = item.get("title", [""])[0]
-        year = item.get("issued", {}).get("date-parts", [[None]])[0][0]
-        authors = [
-            f"{a.get('given', '')} {a.get('family', '')}".strip()
-            for a in item.get("author", [])
-        ]
-        abstract = item.get("abstract", "")
-        results.append(
-            {
-                "title": title,
-                "year": year,
-                "authors": authors,
-                "abstract": abstract,
-                "journal": journal,
-            }
-        )
-
-    return results
-
-
 def parse_crossref_cache_entry(entry: dict, journal: str = None) -> list[dict]:
     """
-    Extracts metadata from a Crossref “message” dict (e.g. what you store in diskcache).
+    Extracts metadata from a Crossref "message" dict (e.g. what you store in diskcache).
 
     Args:
         entry (dict): The cached Crossref `message` dict (already entry["message"], not the full response).
@@ -68,6 +39,7 @@ def parse_crossref_cache_entry(entry: dict, journal: str = None) -> list[dict]:
 
     results = []
     for item in items:
+        doi = (item.get("DOI") or [""])[0]
         title = (item.get("title") or [""])[0]
         year = (item.get("issued", {}).get("date-parts", [[None]])[0] or [None])[0]
         authors = [
@@ -82,6 +54,7 @@ def parse_crossref_cache_entry(entry: dict, journal: str = None) -> list[dict]:
             {
                 "title": title,
                 "year": year,
+                "doi": doi,
                 "authors": authors,
                 "abstract": abstract,
                 "journal": journal_name,
@@ -126,6 +99,7 @@ if __name__ == "__main__":
     dfs = []
     for k in keys:
         # Figure out journal
+        print(k)
         data = parse_hive_cache_key(k)
         journal = issns_inv[data["issn"]]
         v = cache[k]
